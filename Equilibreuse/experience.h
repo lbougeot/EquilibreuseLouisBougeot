@@ -1,0 +1,118 @@
+#ifndef EXPERIENCE_H
+#define EXPERIENCE_H
+
+#include <QObject>
+#include <QList>
+#include <QPointF>
+#include <QDate>
+#include "constante.h"
+#include "pointdecourbe.h"
+
+
+typedef struct{
+    QString modele;
+    QString date;
+    QString numeroDeSerie;
+    double capacite;
+    double sensibilite;
+}typeJauge;
+
+typedef struct{
+    double tensionPleineEchelle;
+    double calibrage;
+}typeConditionneur;
+
+typedef struct{
+    double coefficient;
+    double ordonnee;
+}typeGain;
+
+typedef struct{
+    double coefficient;
+    double ordonnee;
+}typeDephasage;
+
+typedef struct{
+    typeGain gain;
+    typeDephasage dephasage;
+}typeFiltre;
+
+typedef struct{
+    QString id;
+    typeJauge jauge;
+    typeConditionneur conditionneur;
+    typeFiltre filtre;
+}typePalier;
+
+class Experience : public QObject
+{
+    Q_OBJECT
+public:
+    explicit Experience(QObject *parent = nullptr);
+    void LireFichierIni();
+    void EnregistreFichierIni(const typePalier _paliers[]);
+    typePalier *ObtenirCarateristiquesPaliers();
+
+    void LireMesuresBrutes(QString &_nomFichier);
+    void EnregistrerCourbes(QString &nomFichier);
+    void LireCourbes(QString &nomFichier);
+    void ExporterCSV(QString &nomFichier, bool _newton, bool _degre);
+
+    bool InitiliserCourbes(bool _newton, bool _degre);
+    bool PreparerCourbes(double *_mesuresBrutes, int _nbEchantillons, bool _newton, bool _degre);
+
+    QList<QPointF> *ObtenirCourbeA();
+    QList<QPointF> *ObtenirCourbeO();
+
+    void FixerVitesseExperience(int _vitesse);
+    void FixerOrigine(quint16 _origine=0);
+
+
+
+    QPointF RechercherEffortMax(QChar courbe='A');
+    double RechercherEffortAzero(QChar courbe='A');
+    double RechercherEffortAquatreVingtDix(QChar courbe='A');
+    qint16 ObtenirVitesse();
+
+
+    QString ObtenirEtablissement() const;
+    void ModifierEtablissement(const QString &value);
+    QString ObtenirNom() const;
+    void ModifierNom(const QString &value);
+    QString ObtenirPrenom() const;
+    void ModifierPrenom(const QString &value);
+    QString ObtenirClasse() const;
+    void ModifierClasse(const QString &value);
+    QString ObtenirCommentaire() const;
+    void ModifierCommentaire(const QString &value);
+    QString ObtenirDate() const;
+    void ModifierDate(const QDate &value);
+    void ValiderConfig(bool _etat);
+
+signals:
+
+private:
+
+    quint16 vitesseMaxi;            /// vitesse maximale pour une consigne de 100% (en fonction des jauges)
+    typePalier paliers[NB_PALIER];  /// Caractéristiques pour chaque palier (Jauge, Conditionneur, filtre)
+
+    QString etablissement;          /// Nom de l'établissement où sont réalisés les expériences
+    QString nomEtudiant;            /// Nom de l'étudiant réalisant l'expérience
+    QString prenomEtudiant;         /// Prénom de l'étudiant réalisant l'expérience
+    QString classe;                 /// Classe de l'étudiant réalisant l'expérience
+    QString commentaire;            /// Commentaire de l'expérience
+    QDate   date;
+    bool    configExperience;       /// Vrai si l'utilisateur à bien configuré l'expérience
+
+    quint32 nbEchantillons;     /// Nombre d'échantillons dans le tableau de mesures brutes
+    quint16 origine;            /// Valeur du décalage à l'origine
+    qint16  vitesse;            /// Vitesse de l'expérience
+    double *mesuresBrutes ;     /// Tableau de mesures brutes (allocation dynamique)
+
+    QList<PointDeCourbe> courbeA;
+    QList<PointDeCourbe> courbeO;
+
+
+};
+
+#endif // EXPERIENCE_H
